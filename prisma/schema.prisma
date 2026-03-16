@@ -1,0 +1,147 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum VehicleUsageStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  ACTIVE
+  COMPLETED
+  CANCELED
+}
+
+enum NotificationType {
+  REQUEST_CREATED
+  REQUEST_APPROVED
+  REQUEST_REJECTED
+  USAGE_OVERDUE
+}
+
+enum AuditAction {
+  REQUEST_CREATED
+  REQUEST_APPROVED
+  REQUEST_REJECTED
+  REQUEST_CANCELED
+  USAGE_ACTIVATED
+  USAGE_COMPLETED
+  USER_CREATED
+  USER_UPDATED
+  USER_DELETED
+  USER_PASSWORD_RESET
+}
+
+enum AuditEntity {
+  VEHICLE_USAGE
+  VEHICLE
+  USER
+  NOTIFICATION
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  nip       String
+  name      String
+  fungsi    String
+  posisi    String
+  passhash  String
+  createdAt DateTime @default(now())
+  role      Role     @default(USER)
+  deletedAt DateTime? @map("deleted_at")
+
+  usages        VehicleUsage[]
+  notifications Notification[]
+  auditLogs     AuditLog[] @relation("AuditLogActor")
+
+  @@index([nip])
+  @@index([deletedAt])
+  @@map("user")
+}
+
+model Vehicle {
+  id             Int     @id @default(autoincrement())
+  merk           String
+  tahun          Int
+  warna          String
+  nomorPolisi    String  @map("nomor-polisi")
+  dalamPerbaikan Boolean @map("dalam-perbaikan")
+  deletedAt      DateTime? @map("deleted_at")
+
+  usages VehicleUsage[]
+
+  @@index([nomorPolisi])
+  @@index([deletedAt])
+  @@map("vehicles")
+}
+
+model VehicleUsage {
+  id            Int      @id @default(autoincrement())
+  userId        Int      @map("user_id")
+  vehicleId     Int      @map("vehicle_id")
+  tujuan        String?
+  keperluan     String?
+  startAt       DateTime @map("start_at")
+  endAt         DateTime? @map("end_at")
+  odometerStart Int?     @map("odometer_start")
+  odometerEnd   Int?     @map("odometer_end")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  status       VehicleUsageStatus @default(PENDING)
+  approvedById Int?               @map("approved_by_id")
+  approvedAt   DateTime?          @map("approved_at")
+  rejectedAt   DateTime?          @map("rejected_at")
+  rejectReason String?            @map("reject_reason") @db.Text
+
+  user    User    @relation(fields: [userId], references: [id])
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+
+  @@index([userId])
+  @@index([vehicleId])
+  @@index([startAt])
+  @@index([status])
+  @@map("vehicle_usage")
+}
+
+model Notification {
+  id        Int              @id @default(autoincrement())
+  userId    Int              @map("user_id")
+  type      NotificationType
+  title     String
+  message   String?          @db.Text
+  href      String?
+  readAt    DateTime?        @map("read_at")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id        Int         @id @default(autoincrement())
+  actorId   Int?        @map("actor_id")
+  action    AuditAction
+  entity    AuditEntity
+  entityId  Int         @map("entity_id")
+  message   String?
+  metadata  Json?
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  actor User? @relation("AuditLogActor", fields: [actorId], references: [id])
+
+  @@index([actorId])
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
