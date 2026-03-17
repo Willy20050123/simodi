@@ -2,12 +2,12 @@
   "name": "simodi",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
-  },
+"scripts": {
+  "dev": "next dev -p 3001",
+  "build": "next build",
+  "start": "next start -p 3001",
+  "lint": "eslint"
+},
   "dependencies": {
     "@next/font": "^14.2.15",
     "@prisma/adapter-mariadb": "^7.4.0",

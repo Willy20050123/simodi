@@ -23,6 +23,7 @@
 # misc
 .DS_Store
 *.pem
+*.lnk
 
 # debug
 npm-debug.log*
@@ -30,8 +31,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -40,4 +42,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-simodi.sql
+# local/private sql backups
+simodi_private_backup.sql
